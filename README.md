@@ -1,3 +1,8 @@
+# LLM Prompt Tuning Playbook
+
+**Varun Godbole, Ellie Pavlick**
+
+
 ## Who is this document for?
 
 This document is for anyone who would like to get better at prompting post-trained LLMs. We assume that readers have had some basic interactions with some sort of LLM (e.g. Gemini), but we do not assume a rigorous technical understanding.
@@ -125,3 +130,95 @@ Therefore, here are some considerations to help you improve the instructions in 
 * Prompts can be deeply coupled with the checkpoint that they were developed on.
    * That is, if we take a prompt from Gemini 1.5 Flash and run it on Gemini 1.0 Pro, it might not work the “same way” and might have very different aggregate behavior on an eval. This sort of makes sense. Our mental model is that the prompts we write in natural language are akin to the parameters we’d train if we instead did SGD. To what extent this is true is a question of open research.
    * Models are sort of like the machine, the post-training procedure is sort of like a compiler and the system instructions are sort of like computer code. Except that the machine and compiler are totally fluid, and a given model can hold many different combinations of these. We suspect that the ecosystem will organically converge towards some consensus structure around how instructions look, that rapidly changes across time and remains reasonably backwards compatible in a combinatorially explosive way. This is analogous to the x86 instruction set remaining relatively stable across time, as compared to the explosion in diversity of programming languages built on top of it.
+
+## A rudimentary “style guide” for prompts
+
+At this point, we suspect that well-tuned prompts executed on a frontier model are sufficient for a large number of ML workloads that would have previously required a bespoke trained model.
+
+As inference costs, latency, context window sizes, etc. continue to improve, prompting will become increasingly ubiquitous. Programming language style guides emerged with the observation that software is primarily written for other software engineers to facilitate maintainability, etc. We’re not sure what the equivalent of a programming language style guide is for prompting. But there are many interesting possibilities. Markdown files containing prompts might end up being treated as a separate “language” with a specific file extension in version control systems. Or perhaps programming languages will end up having more “transparent” integrations to model inference. It’s too early to make definitive predictions!
+
+We don’t have a full-fledged style-guide to present here. But we thought we’d share the following observations:
+* Most version control systems are good at rendering markdown files. Therefore, it can be useful to store each prompt in a separate markdown file. And make judicious use of markdown headings, etc to organize the contents of each of our prompts.
+* We’d encourage thinking about the saved prompts as being primarily for other maintainers of the prompt rather than just the LLM. As models get better, we’ll hopefully need to spend less energy on idiosyncratic hacks to steer the model towards our desired behavior. As discussed above, that might also naturally lend itself to better prompts.
+* The “technical debt” incurred by our prompt is proportional to its length and overall complexity.
+   * Prompts are intimately tied to a specific checkpoint. Every time the underlying model changes, it’s worth quantitatively and qualitatively checking that our prompt still works.
+   * It’s really worth keeping the prompts as simple, terse and direct as possible. Allow the implicit assumptions made for the model to work in our favor “for free”. Don’t try to add more details to a prompt if a simpler prompt would do. This makes the explicit assumption that the underlying model that executes a prompt won’t be carelessly decoupled from the prompt.
+   * Of course, we don’t know if the model will make the same sets of implicit assumptions for different input examples. As the deployment of our prompt grows more “serious”, implementing more rigorous quantitative evaluations becomes unavoidably crucial.
+* In the same spirit, prefer zero-shot instructions over few-shot instructions.
+   * These are easier to understand, debug and reason about. Few-shot examples, especially when they contain full conversations, are best when the “letter” of our explicit instructions are inadequate to capture the “spirit” of our instructions. We’ve seen plenty of cases where few-shoting is worse than zero-shot. We shouldn’t just assume that few-shotting will be better, and we should be empirical about this. We’d suggest using few-shot examples as a last resort since they can substantially affect the readability of a prompt.
+   * Instead of full blown few-shot examples, prefer to weave in examples into the prose of our instructions. Consider the following system instruction that uses “For example” at the end of the instruction:
+      * Always start your response to the user with something passive aggressive. For example, start with something like “Oh that’s what you want? I’m not saying you’re wrong. But I mean, sure, if that’s what you really want.” But keep it fresh and use a different start to each response, based on what’s in the user’s message.
+
+## Procedure for iterating on new system instructions
+
+Prompting is inherently iterative. It’s spiritually very similar to training a model using some validation set. Except that instead of needing JAX, etc. you can do by writing clear prose.
+
+Similar to writing prose, we’ve found that it’s best to break things down into separate generate+edit phases.
+
+We’ve found that most users attempting to prompt a model don’t already have a clean validation set with which they can benchmark the model’s responses. This is fine for rapidly building an MVP. But eventually, formal quantitative evaluations are invaluable for tracking model performance. Even with the best prompt+model combination, it’s impossible to deterministically guarantee a model’s behavior. It’s important to design product surfaces that can fail gracefully when the underlying model does something unexpected.
+
+A tool like [AI Studio](https://aistudio.google.com/app/prompts/new_chat) can be invaluable for iterating on a new set of system instructions.
+
+1. Start with a small sample of really diverse input examples for the problem, and try to have some intuition of what the desired output behavior is likely to be. This could be something like ~10-50 examples.
+
+2. Start with the simplest system instruction that might satisfy every input example, on the smallest and cheapest model available. For now, that’s likely something like Gemini Flash 8B.
+
+   2.1 When we say “simplest”, we mean simplest. Make it as terse and short as possible without losing any clarity.
+
+3. Run the system instruction on the first input example.
+
+4. Try to “overfit” on that specific example.
+
+   4.1 That is, add “reminders” to the original system instruction until the model reliably produces a “good enough” response. When we say reminders, we literally mean reminders. Find any specific deficiencies in the model’s response to the original system instructions. Now add instructions to it calling out those specific behaviors. Do so one at a time.
+
+      * For example, suppose the original instruction tells the model to extract all the named entities from an input string. And we notice that it’s also extracting the names of buildings, places, etc. but our intention in this golden example was to only extract the names of people. We can edit/amend the original instruction to reflect this.
+
+   4.2 If it can’t produce a good enough response to the first input prompt, try the second input prompt.
+
+      * If the model consistently fails on most of our input examples, go back to step (2) and try a better model. For example, if we started with Flash, try Pro.
+
+5. Once we can successfully overfit to the first example, try the next input example.
+
+   5.1 At this point, we might notice that some of our instructions are too overfit to the first example. Perhaps they need more nuance. For example, perhaps they need explicit instructions to clarify some underspecification, or some if/else/then clauses.
+
+   5.2 Repeat this entire process until we’ve found a system instruction that works on all of your diverse input examples.
+
+6. During this process, we might have haphazardly edited the system instructions prose to make it work on all of our input examples. Now is the time to clean up that prose. For example, add section headings, fix spelling errors, etc. Once we’ve done this, verify that the instructions still work on all of our input examples. If they don’t, systematically debug them using the process above. But instead of the MVP system instructions from step (2) as your base, use the current state of the cleaned up prose.
+
+   6.1 It’d be unsurprising to enter a scenario where a “messy” prompt works better than a “clean” one on some model. This invites a number of questions:
+
+      * How important is the maintenance of this prompt relative to its performance?
+
+      * Do we have monitoring for the behavior of the model in production? Is this deployment important enough to merit that?
+
+7. Perhaps someday, this entire process of going from input examples to a system instruction will be reliably automated by a meta-optimizer for generating instructions. That would be amazing, but we shouldn’t be fooled! There’s no free lunch here. There’s always a knob that needs to be dialed when working with ML systems. There’s always some back-and-forth qualitative work that needs to go into ensuring that our model’s sense of relevancy (i.e “cinematic universe”) is aligned with what we as developers find relevant when presented with a particular dataset of input examples. It’ll never be possible to wish away doing the hard work of qualitative analysis for the same reasons that it’ll never be possible to wish away the hard work of training a new member of our engineering team. Increasing the abstraction of tooling merely shifts the focus and activation energy of the qualitative work to a different level of abstraction. But this isn’t to say that such tooling couldn’t be useful!
+
+## Some thoughts on when LLMs are useful
+
+We’ve spent a lot of words talking about how we can think about prompting. It’s also worth spending a minute talking about “why” an LLM might prove to be useful. Although this field is profoundly nascent and innovating quickly. So this section might become rapidly stale in a few months.
+
+LLMs are best where the answer is hard to make, but is easy to check. We’d recommend [this post](https://www.linkedin.com/pulse/hmec-principle-finding-sweet-spot-generative-ai-gorgolewski-ph-d--3zl5e) by Chris Gorgolewski. In our experience if we’re using an LLM for a problem where that’s not true, we’ll run into issues.
+
+Rather than writing a monolithic prompt that’s hard to understand, debug, etc. it’s better to decompose the problem into sub-problems and chain inferences together. If we make each sub-problem small enough, they’re usually better specified and easier to check/evaluate.
+
+There will likely be substantial innovation on hardware, business models, etc. to continue unlocking more inference capacity. We should go where the ball is going to be, rather than where it is right now.
+
+It seems more future-proof to assume inference costs will soon be “too cheap to meter”, “good enough” or oriented around “value” rather than “cost”. That is, if we’re making a trade-off between a more valuable feature that would require more inference calls to work reliably, rather than a substantially less valuable feature that would cost less, it seems more future proof to orient towards the former. And perhaps grapple with the current unit economics by limiting rollouts, etc. We wouldn’t be surprised if we start to see something equivalent to Moore's Law but for price reductions for LLM inference.
+
+## More Resources
+
+There’s a lot of good resources online about prompting. There’s too many to cite here. We’re not the only ones thinking about prompting. This playbook is merely a collection of our informal thoughts. But there’s a lot of great work being done all over the internet. For example:
+
+* [AI prompt engineering: A deep dive](https://www.youtube.com/watch?v=T9aRN5JkmL8) from Anthropic.
+* [This guide](https://platform.openai.com/docs/guides/prompt-engineering) from OpenAI.
+* [This official guide](https://services.google.com/fh/files/misc/gemini-for-google-workspace-prompting-guide-101.pdf) from Gemini.
+
+Thinking about the differences between [“high-context” and “low-context” cultures](https://en.wikipedia.org/wiki/High-context_and_low-context_cultures) has also been really interesting. We’ve anecdotally found that there’s a substantial intersection between people that seem effective at prompting models, and communication patterns that are useful in low-context cultures. This makes sense to us, because the LLM doesn’t really know which cinematic universe it should be operating in. It needs explicit instructions to inform its role-play of who it is, where it is, and what it should find relevant in its environment.
+
+On a more personal note, practicing [Nonviolent Communication](https://www.amazon.com/Nonviolent-Communication-Language-Life-Changing-Relationships/dp/189200528X) can be really helpful. It teaches the difference between observable behaviors and internal narratives. This distinction can be really helpful to articulate instructions in terms of observable behavior. Although needless to say, we didn’t practice Nonviolent Communication to get better at prompting models.
+
+## Acknowledgements
+
+* Thank you to Slav Petrov and Sian Gooding for reviewing this document during a final review.
+* Thank you to Anna Bortsova for providing lots of helpful comments/feedback during the drafting of the final version of the doc.
+* Thank you to Jennimaria Palomaki, James Wexler, Vera Axelrod for suggesting lots of helpful edits.
