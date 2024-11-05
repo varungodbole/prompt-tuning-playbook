@@ -44,6 +44,9 @@ This issue – i.e., the issue of struggling to define what it means for somethi
 
 For the purposes of this document, you can think of the pretraining corpus as an approximation of the set union of all the cinematic universes produced by human culture. Or, more accurately, the cultures that heavily participate with the pretraining data sources like the web.
 
+> [!IMPORTANT]
+> you can think of the pretraining corpus as an approximation of the set union of all the cinematic universes produced by human culture. Or, more accurately, the cultures that heavily participate with the pretraining data sources like the web.
+
 When you give the model a fixed context window (i.e. prefix), it will try to infer from that prefix what universe it is in, and it will then behave in accordance with the rules, conventions, and facts of that universe. If you provide a prompt with very strong signals about context, it will be easier for the LLM to recognize the script. For example, consider a prompt like “*The concrete jungle where dreams are made of isn't just a catchy lyric – it's the electric truth of New York City. From the soaring skyscrapers that pierce the clouds to the vibrant pulse of its diverse neighborhoods, NYC offers an experience unlike any other on Earth*”, i.e., the first two lines of a blog post that I might write about NYC.) In this case, the model has very strong constraints on style and topic that will influence how it proceeds with the generation.
 
 But, if your prompt is highly generic – say, “Hi, how are you?” — the LLM might not have enough context to understand which cinematic universe it’s supposed to be in. “Hi, how are you?” probably occurs in all kinds of contexts in the diverse corpora it was trained on. That is, there are many “modes” in the probability density function used to decode a generation. Or to put it in simpler terms, it sees many possibilities that it could role-play as. The text “Hi, how are you?”, or even something much longer, doesn’t give it enough context to disambiguate this.
@@ -55,6 +58,9 @@ That’s where post-training comes in.
 Post-training provides the LLM with guidance about the “default” universe within which it exists. Rather than asking the LLM to infer this universe from a prompt alone, post training can constrain the LLM to make certain assumptions or resolve ambiguities in consistent ways. There are many reasons this is necessary for making models useful. For example, LLMs might need to be told that, by default, they follow instructions. Otherwise, given a prompt like “*Write a report about George Washington*”, an LLM without post-training might happily generate a continuation of the instruction, e.g., something like “*It's due by 4:59pm on Friday*”, rather than generate the report that was requested. But post-training can be used to impose other defaults as well, such as influencing the model’s default behavior to be more consistent with social norms, however defined, ideally to make it a safer or more productive tool for its particular assumed use cases.
 
 We really like Murray Shanahan’s articulation that one way to conceptualize what these models might be doing is that they’re engaging in a form of [role-playing](https://arxiv.org/abs/2305.16367) that’s a function of their overall training recipe. Our intuition is that post-training teaches these models a coherent and default role to play in diverse deployment settings. Here’s a non-exhaustive list of what they might learn during post-training, ranging from the mundane and practical to the subjective and personal.
+
+> [!IMPORTANT]
+> post-training teaches these models a coherent and default role to play in diverse deployment settings.
 
 * **That the model should follow a specific format.** For example, [Gemma’s formatter](https://ai.google.dev/gemma/docs/formatting) teaches it that it’s in a cinematic universe where there’s always a conversation between it and some arbitrary human user. In that universe, the role it’s being asked to play is described in the system instructions. Depending on the formatter, in each conversation, the human’s turn is always first.
 * **That the model should “follow instructions” from the user.** That is, if the user gives it a string prompting it to “write an essay about a dog”, it should actually do that, rather than respond to the user with an increasingly bossy continuation of the instruction.
@@ -76,6 +82,9 @@ From the perspective of the AI developer, the process of human data collection f
 
 A large part of why LLMs are able to “act human” is because these statistical models are fitted to a large dataset of carefully collected demonstrations of human behavior. The pre-training phase, model architecture, learning algorithm, etc provide the core infrastructure and underlying capability for the model. But post-training provides the overall orientation of the model (via human demonstrations) which dictates how it will actually behave when it actually is deployed.
 
+> [!IMPORTANT]
+> A large part of why LLMs are able to “act human” is because these statistical models are fitted to a large dataset of carefully collected demonstrations of human behavior.
+
 Post-training teams spend a substantial amount of time on quality control on their data. A lot of effort goes into matching raters with the prompts for which they are best suited. For example, to provide a good demonstration of how to respond to a prompt containing a hard Python debugging problem, it's necessary to find a rater who is themself a good Python programmer.
 
 Collecting “high quality” data from human raters is extremely challenging. Some reasons include:
@@ -87,6 +96,9 @@ Collecting “high quality” data from human raters is extremely challenging. S
 ## Considerations for Prompting
 
 **Broad Takeaway -** When your writing system instructions and prompts, you are writing them for something like the aggregated spirit of the post-training team’s rater pool, seeded by the aggregated spirit of the pre-training corpus. If we write instructions that the average rater (within that specific domain) is likely able to understand, comprehend and faithfully follow, the model is more likely to follow our instructions.
+
+> [!IMPORTANT]
+> When your writing system instructions and prompts, you are writing them for something like the aggregated spirit of the post-training team’s rater pool, seeded by the aggregated spirit of the pre-training corpus.
 
 When we write system instructions, it’s helpful to imagine that there’s a friendly, well-meaning and competent rater prepared to role-play AI on the other side of the screen. The text we provide is all they’ve got. That is, when we make an API call to Gemini, imagine that there’s a human rater on the other side that will carefully read our prompt and provide a response. When constructing prompts, it’s extremely helpful to take on their perspective and to consider our instructions in that light. For example, suppose the instructions are about generating Python code. If we randomly picked a competent Python engineer off the street and asked them to respond to these instructions, would they understand what we want?
 
@@ -162,6 +174,9 @@ A tool like [AI Studio](https://aistudio.google.com/app/prompts/new_chat) can be
       * Do we have monitoring for the behavior of the model in production? Is this deployment important enough to merit that?
 
 7. Perhaps someday, this entire process of going from input examples to a system instruction will be reliably automated by a meta-optimizer for generating instructions. That would be amazing, but we shouldn’t be fooled! There’s no free lunch here. There’s always a knob that needs to be dialed when working with ML systems. There’s always some back-and-forth qualitative work that needs to go into ensuring that our model’s sense of relevancy (i.e “cinematic universe”) is aligned with what we as developers find relevant when presented with a particular dataset of input examples. It’ll never be possible to wish away doing the hard work of qualitative analysis for the same reasons that it’ll never be possible to wish away the hard work of training a new member of our engineering team. Increasing the abstraction of tooling merely shifts the focus and activation energy of the qualitative work to a different level of abstraction. But this isn’t to say that such tooling couldn’t be useful!
+
+> [!IMPORTANT]
+> It’ll never be possible to wish away doing the hard work of qualitative analysis for the same reasons that it’ll never be possible to wish away the hard work of training a new member of our engineering team.
 
 ## Some thoughts on when LLMs are useful
 
