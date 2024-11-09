@@ -113,10 +113,10 @@ Collecting “high quality” data from human raters is extremely challenging. S
 
 ## Considerations for Prompting
 
-**Broad Takeaway -** When your writing system instructions and prompts, you are writing them for something like the aggregated spirit of the post-training team’s rater pool, seeded by the aggregated spirit of the pre-training corpus. If we write instructions that the average rater (within that specific domain) is likely able to understand, comprehend and faithfully follow, the model is more likely to follow our instructions.
+**Broad Takeaway -** When you're writing system instructions and prompts, you are writing them for something like the aggregated spirit of the post-training team’s rater pool, seeded by the aggregated spirit of the pre-training corpus. If we write instructions that the average rater (within that specific domain) is likely able to understand, comprehend and faithfully follow, the model is more likely to follow our instructions.
 
 > [!IMPORTANT]
-> When your writing system instructions and prompts, you are writing them for something like the aggregated spirit of the post-training team’s rater pool, seeded by the aggregated spirit of the pre-training corpus.
+> When you're writing system instructions and prompts, you are writing them for something like the aggregated spirit of the post-training team’s rater pool, seeded by the aggregated spirit of the pre-training corpus.
 
 When we write system instructions, it’s helpful to imagine that there’s a friendly, well-meaning and competent rater prepared to role-play AI on the other side of the screen. The text we provide is all they’ve got. That is, when we make an API call to Gemini, imagine that there’s a human rater on the other side that will carefully read our prompt and provide a response. When constructing prompts, it’s extremely helpful to take on their perspective and to consider our instructions in that light. For example, suppose the instructions are about generating Python code. If we randomly picked a competent Python engineer off the street and asked them to respond to these instructions, would they understand what we want?
 
