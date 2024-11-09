@@ -2,6 +2,22 @@
 
 **Varun Godbole, Ellie Pavlick**
 
+## Table of Contents
+
+- [Who is this document for?](#who-is-this-document-for)
+- [Why a tuning playbook?](#why-a-tuning-playbook)
+- [Background: Pre-training vs. Post-training](#background-pre-training-vs-post-training)
+   - [Pre-training](#pre-training)
+      - [The "Cinematic Universe" Intuition of Pre-training](#the-cinematic-universe-intuition-of-pre-training)
+   - [Post-training](#post-training)
+      - [Post-training Data Collection](#post-training-data-collection)
+- [Considerations for Prompting](#considerations-for-prompting)
+- [A rudimentary "style guide" for prompts](#a-rudimentary-style-guide-for-prompts)
+- [Procedure for iterating on new system instructions](#procedure-for-iterating-on-new-system-instructions)
+- [Some thoughts on when LLMs are useful](#some-thoughts-on-when-llms-are-useful)
+- [More Resources](#more-resources)
+- [Acknowledgements](#acknowledgements)
+
 ## Who is this document for?
 
 This document is for anyone who would like to get better at prompting post-trained LLMs. We assume that readers have had some basic interactions with some sort of LLM (e.g. Gemini), but we do not assume a rigorous technical understanding.
@@ -34,7 +50,7 @@ One of the key ideas of training LLMs is to use “language modeling” -- that 
 
 This seems easy enough to understand, until we try to answer the question: what world does the internet reflect? To try to wrap our heads around this question (and its answer) we suggest a useful if somewhat fanciful metaphor: the Cinematic Universe.
 
-#### The “Cinematic Universe” Intuition of Pretraining
+#### The “Cinematic Universe” Intuition of Pre-training
 
 Large language models must learn about what the world is like by reading about the world in text. Text, though, has never been constrained to describe only things that are “true” in the conventional sense. Much attention is paid to misinformation or incorrect statements, but there are also lots of very innocent and desirable reasons why text does not and should not reflect a single factual reality corresponding to a single state of the world.
 
