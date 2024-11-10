@@ -214,6 +214,7 @@ There’s a lot of good resources online about prompting. There’s too many to 
 * [AI prompt engineering: A deep dive](https://www.youtube.com/watch?v=T9aRN5JkmL8) by Anthropic.
 * [This guide](https://platform.openai.com/docs/guides/prompt-engineering) from OpenAI.
 * [This guide](https://services.google.com/fh/files/misc/gemini-for-google-workspace-prompting-guide-101.pdf) for Gemini.
+* [LearnPrompting.org](https://learnprompting.org/docs/introduction)
 
 Thinking about the differences between [“high-context” and “low-context” cultures](https://en.wikipedia.org/wiki/High-context_and_low-context_cultures) has also been really interesting. We’ve anecdotally found that there’s a substantial intersection between people that seem effective at prompting models, and communication patterns that are useful in low-context cultures. This makes sense to us, because the LLM doesn’t really know which cinematic universe it should be operating in. It needs explicit instructions to inform its role-play of who it is, where it is, and what it should find relevant in its environment.
 
